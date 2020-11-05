@@ -17,6 +17,20 @@
 
     return nowMins >= startMins && nowMins < endMins;
   }
+
+  function get12HourStamp(timeStr) {
+    let timeArr = timeStr.split(':').map((i) => parseInt(i));
+    let hours = timeArr[0];
+    let mins = timeArr[1];
+    let morning = true;
+
+    if (hours > 12) {
+      hours = hours - 12;
+      morning = false;
+    }
+
+    return `${hours}:${mins} ${morning ? 'AM' : 'PM'}`;
+  }
 </script>
 
 <div
@@ -30,8 +44,8 @@
     <span class="card-title center">{info.id}</span>
   </div>
   <div class="row">
-    <div class="col s5 center">{info.start}</div>
+    <div class="col s5 center">{get12HourStamp(info.start)}</div>
     <div class="col s2 center">-</div>
-    <div class="col s5 center">{info.end}</div>
+    <div class="col s5 center">{get12HourStamp(info.end)}</div>
   </div>
 </div>
