@@ -19,8 +19,8 @@
   }
 
   function get12HourStamp(timeStr) {
-    let timeArr = timeStr.split(':').map((i) => parseInt(i));
-    let hours = timeArr[0];
+    let timeArr = timeStr.split(':');
+    let hours = parseInt(timeArr[0]);
     let mins = timeArr[1];
     let morning = true;
 

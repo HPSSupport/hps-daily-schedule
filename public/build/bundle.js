@@ -458,7 +458,7 @@ var app = (function () {
     			span = element("span");
     			attr_dev(span, "class", "badge blue white-text");
     			attr_dev(span, "data-badge-caption", "passing");
-    			add_location(span, file, 40, 4, 1072);
+    			add_location(span, file, 40, 4, 1058);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
@@ -518,21 +518,21 @@ var app = (function () {
     			div3 = element("div");
     			t7 = text(t7_value);
     			attr_dev(span, "class", "card-title center");
-    			add_location(span, file, 43, 4, 1188);
+    			add_location(span, file, 43, 4, 1174);
     			attr_dev(div0, "class", "card-content p-0");
-    			add_location(div0, file, 42, 2, 1152);
+    			add_location(div0, file, 42, 2, 1138);
     			attr_dev(div1, "class", "col s5 center");
-    			add_location(div1, file, 46, 4, 1273);
+    			add_location(div1, file, 46, 4, 1259);
     			attr_dev(div2, "class", "col s2 center");
-    			add_location(div2, file, 47, 4, 1340);
+    			add_location(div2, file, 47, 4, 1326);
     			attr_dev(div3, "class", "col s5 center");
-    			add_location(div3, file, 48, 4, 1380);
+    			add_location(div3, file, 48, 4, 1366);
     			attr_dev(div4, "class", "row");
-    			add_location(div4, file, 45, 2, 1250);
+    			add_location(div4, file, 45, 2, 1236);
     			attr_dev(div5, "class", "card");
     			toggle_class(div5, "blue", /*current*/ ctx[2] === true);
     			toggle_class(div5, "lighten-4", /*current*/ ctx[2] === true);
-    			add_location(div5, file, 35, 0, 957);
+    			add_location(div5, file, 35, 0, 943);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -607,8 +607,8 @@ var app = (function () {
     }
 
     function get12HourStamp(timeStr) {
-    	let timeArr = timeStr.split(":").map(i => parseInt(i));
-    	let hours = timeArr[0];
+    	let timeArr = timeStr.split(":");
+    	let hours = parseInt(timeArr[0]);
     	let mins = timeArr[1];
     	let morning = true;
 
