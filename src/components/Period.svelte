@@ -27,6 +27,8 @@
     if (hours > 12) {
       hours = hours - 12;
       morning = false;
+    } else if (hours === 12) {
+      morning = false;
     }
 
     return `${hours}:${mins} ${morning ? 'AM' : 'PM'}`;
