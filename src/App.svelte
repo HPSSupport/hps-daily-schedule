@@ -27,12 +27,9 @@
 </style>
 
 <main>
-  <nav class="nav-extended blue darken-4">
-    <div class="nav-wrapper mh36">
-      <a href="#!" class="brand-logo center">Hopkins Public Schools</a>
-    </div>
-    <div class="nav-content center lh">
-      <span class="nav-title">{formatter.format($time)}</span>
+  <nav class="blue darken-4">
+    <div class="nav-wrapper">
+      <span class="brand-logo center">{formatter.format($time)}</span>
     </div>
   </nav>
 
