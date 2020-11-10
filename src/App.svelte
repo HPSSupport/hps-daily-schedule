@@ -1,7 +1,7 @@
 <script>
   import axios from 'axios';
   import { time } from './stores/TimeStore.js';
-  import { sched } from './stores/SchechduleStore.js';
+  import { hhsSched } from './stores/ScheduleStore.js';
   import Schedule from './components/Schedule.svelte';
 
   const formatter = new Intl.DateTimeFormat('en', {
@@ -33,9 +33,9 @@
     <div class="row">
       {#if $sched.length > 0}
         <div class="col s12">
-          <Schedule sched={$sched[0].periods} title={$sched[0].title} />
-          <Schedule sched={$sched[1].periods} title={$sched[1].title} />
-        </div>
+          <Schedule sched={$hhsSched[0].periods} title={$hhsSched[0].title} />
+          <hhsSchedule sched={$hhsSched[1].periods} title={$hhsSched[1].title} />
+        </hhsSched
       {/if}
     </div>
   </div>

@@ -2465,7 +2465,7 @@ var app = (function () {
     			t = space();
     			create_component(schedule1.$$.fragment);
     			attr_dev(div, "class", "col s12");
-    			add_location(div, file$2, 34, 8, 774);
+    			add_location(div, file$2, 34, 8, 772);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -2546,20 +2546,20 @@ var app = (function () {
     			if (if_block) if_block.c();
     			attr_dev(a, "href", "#!");
     			attr_dev(a, "class", "brand-logo center");
-    			add_location(a, file$2, 24, 6, 499);
+    			add_location(a, file$2, 24, 6, 497);
     			attr_dev(div0, "class", "nav-wrapper");
-    			add_location(div0, file$2, 23, 4, 467);
+    			add_location(div0, file$2, 23, 4, 465);
     			attr_dev(span, "class", "nav-title");
-    			add_location(span, file$2, 27, 6, 619);
+    			add_location(span, file$2, 27, 6, 617);
     			attr_dev(div1, "class", "nav-content center");
-    			add_location(div1, file$2, 26, 4, 580);
+    			add_location(div1, file$2, 26, 4, 578);
     			attr_dev(nav, "class", "nav-extended blue darken-4");
-    			add_location(nav, file$2, 22, 2, 422);
+    			add_location(nav, file$2, 22, 2, 420);
     			attr_dev(div2, "class", "row");
-    			add_location(div2, file$2, 32, 4, 718);
+    			add_location(div2, file$2, 32, 4, 716);
     			attr_dev(div3, "class", "");
-    			add_location(div3, file$2, 31, 2, 699);
-    			add_location(main, file$2, 21, 0, 413);
+    			add_location(div3, file$2, 31, 2, 697);
+    			add_location(main, file$2, 21, 0, 411);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
