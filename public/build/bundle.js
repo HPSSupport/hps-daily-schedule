@@ -2184,7 +2184,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (11:6) {#each sched as period}
+    // (17:6) {#each sched as period}
     function create_each_block(ctx) {
     	let div;
     	let period;
@@ -2202,7 +2202,7 @@ var app = (function () {
     			create_component(period.$$.fragment);
     			t = space();
     			attr_dev(div, "class", "col s2");
-    			add_location(div, file$1, 11, 8, 277);
+    			add_location(div, file$1, 17, 8, 354);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -2234,7 +2234,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(11:6) {#each sched as period}",
+    		source: "(17:6) {#each sched as period}",
     		ctx
     	});
 
@@ -2274,14 +2274,14 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(span, "class", "card-title");
-    			add_location(span, file$1, 8, 4, 174);
+    			attr_dev(span, "class", "card-title lh24 svelte-nhkxa3");
+    			add_location(span, file$1, 14, 4, 246);
     			attr_dev(div0, "class", "row");
-    			add_location(div0, file$1, 9, 4, 219);
+    			add_location(div0, file$1, 15, 4, 296);
     			attr_dev(div1, "class", "card-content p-0");
-    			add_location(div1, file$1, 7, 2, 138);
+    			add_location(div1, file$1, 13, 2, 210);
     			attr_dev(div2, "class", "card z-depth-0");
-    			add_location(div2, file$1, 6, 0, 106);
+    			add_location(div2, file$1, 12, 0, 178);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2680,7 +2680,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (17:4) {#each sched as period}
+    // (15:4) {#each sched as period}
     function create_each_block$1(ctx) {
     	let hmsperiod;
     	let current;
@@ -2721,7 +2721,7 @@ var app = (function () {
     		block,
     		id: create_each_block$1.name,
     		type: "each",
-    		source: "(17:4) {#each sched as period}",
+    		source: "(15:4) {#each sched as period}",
     		ctx
     	});
 
@@ -2732,7 +2732,7 @@ var app = (function () {
     	let div;
     	let ul;
     	let li;
-    	let h5;
+    	let span;
     	let t0;
     	let t1;
     	let current;
@@ -2753,7 +2753,7 @@ var app = (function () {
     			div = element("div");
     			ul = element("ul");
     			li = element("li");
-    			h5 = element("h5");
+    			span = element("span");
     			t0 = text(/*title*/ ctx[0]);
     			t1 = space();
 
@@ -2761,7 +2761,7 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			add_location(h5, file$3, 14, 6, 281);
+    			add_location(span, file$3, 13, 34, 273);
     			attr_dev(li, "class", "collection-header");
     			add_location(li, file$3, 13, 4, 243);
     			attr_dev(ul, "class", "collection with-header");
@@ -2776,8 +2776,8 @@ var app = (function () {
     			insert_dev(target, div, anchor);
     			append_dev(div, ul);
     			append_dev(ul, li);
-    			append_dev(li, h5);
-    			append_dev(h5, t0);
+    			append_dev(li, span);
+    			append_dev(span, t0);
     			append_dev(ul, t1);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -2959,7 +2959,7 @@ var app = (function () {
     			t = space();
     			create_component(schedule1.$$.fragment);
     			attr_dev(div, "class", "col s12");
-    			add_location(div, file$4, 39, 8, 940);
+    			add_location(div, file$4, 39, 8, 945);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -3148,10 +3148,10 @@ var app = (function () {
     			add_location(div1, file$4, 31, 4, 732);
     			attr_dev(nav, "class", "nav-extended blue darken-4");
     			add_location(nav, file$4, 27, 2, 570);
-    			attr_dev(div2, "class", "row");
+    			attr_dev(div2, "class", "row mb-0");
     			add_location(div2, file$4, 37, 4, 879);
     			attr_dev(div3, "class", "row");
-    			add_location(div3, file$4, 45, 4, 1168);
+    			add_location(div3, file$4, 45, 4, 1173);
     			attr_dev(div4, "class", "");
     			add_location(div4, file$4, 36, 2, 859);
     			add_location(main, file$4, 26, 0, 560);

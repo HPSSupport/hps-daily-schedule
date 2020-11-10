@@ -11,9 +11,7 @@
 
 <div class="col s4">
   <ul class="collection with-header">
-    <li class="collection-header">
-      <h5>{title}</h5>
-    </li>
+    <li class="collection-header"><span>{title}</span></li>
     {#each sched as period}
       <HMSPeriod info={period} />
     {/each}
