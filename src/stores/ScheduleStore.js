@@ -11,4 +11,6 @@ export const hhsSched = writable({}, async (set) => {
 
 export const hmsSched = writable({}, async (set) => {
   const res = await axios.get('https://my-json-server.typicode.com/HPSSupport/hps-schedule-data/hms')
+
+  set(res.data);
 });

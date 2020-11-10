@@ -190,6 +190,19 @@ var app = (function () {
             block.o(local);
         }
     }
+
+    const globals = (typeof window !== 'undefined'
+        ? window
+        : typeof globalThis !== 'undefined'
+            ? globalThis
+            : global);
+    function each(items, fn) {
+        let str = '';
+        for (let i = 0; i < items.length; i += 1) {
+            str += fn(items[i], i);
+        }
+        return str;
+    }
     function create_component(block) {
         block && block.c();
     }
@@ -373,6 +386,78 @@ var app = (function () {
         $capture_state() { }
         $inject_state() { }
     }
+
+    const subscriber_queue = [];
+    /**
+     * Creates a `Readable` store that allows reading by subscription.
+     * @param value initial value
+     * @param {StartStopNotifier}start start and stop notifications for subscriptions
+     */
+    function readable(value, start) {
+        return {
+            subscribe: writable(value, start).subscribe
+        };
+    }
+    /**
+     * Create a `Writable` store that allows both updating and reading by subscription.
+     * @param {*=}value initial value
+     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     */
+    function writable(value, start = noop) {
+        let stop;
+        const subscribers = [];
+        function set(new_value) {
+            if (safe_not_equal(value, new_value)) {
+                value = new_value;
+                if (stop) { // store is ready
+                    const run_queue = !subscriber_queue.length;
+                    for (let i = 0; i < subscribers.length; i += 1) {
+                        const s = subscribers[i];
+                        s[1]();
+                        subscriber_queue.push(s, value);
+                    }
+                    if (run_queue) {
+                        for (let i = 0; i < subscriber_queue.length; i += 2) {
+                            subscriber_queue[i][0](subscriber_queue[i + 1]);
+                        }
+                        subscriber_queue.length = 0;
+                    }
+                }
+            }
+        }
+        function update(fn) {
+            set(fn(value));
+        }
+        function subscribe(run, invalidate = noop) {
+            const subscriber = [run, invalidate];
+            subscribers.push(subscriber);
+            if (subscribers.length === 1) {
+                stop = start(set) || noop;
+            }
+            run(value);
+            return () => {
+                const index = subscribers.indexOf(subscriber);
+                if (index !== -1) {
+                    subscribers.splice(index, 1);
+                }
+                if (subscribers.length === 0) {
+                    stop();
+                    stop = null;
+                }
+            };
+        }
+        return { set, update, subscribe };
+    }
+
+    let time = readable(new Date(), function start(set) {
+      let interval = setInterval(() => {
+        set(new Date());
+      }, 1000);
+
+      return function stop() {
+        clearInterval(interval);
+      };
+    });
 
     var bind = function bind(fn, thisArg) {
       return function wrap() {
@@ -1818,78 +1903,6 @@ var app = (function () {
 
     var axios$1 = axios_1;
 
-    const subscriber_queue = [];
-    /**
-     * Creates a `Readable` store that allows reading by subscription.
-     * @param value initial value
-     * @param {StartStopNotifier}start start and stop notifications for subscriptions
-     */
-    function readable(value, start) {
-        return {
-            subscribe: writable(value, start).subscribe
-        };
-    }
-    /**
-     * Create a `Writable` store that allows both updating and reading by subscription.
-     * @param {*=}value initial value
-     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
-     */
-    function writable(value, start = noop) {
-        let stop;
-        const subscribers = [];
-        function set(new_value) {
-            if (safe_not_equal(value, new_value)) {
-                value = new_value;
-                if (stop) { // store is ready
-                    const run_queue = !subscriber_queue.length;
-                    for (let i = 0; i < subscribers.length; i += 1) {
-                        const s = subscribers[i];
-                        s[1]();
-                        subscriber_queue.push(s, value);
-                    }
-                    if (run_queue) {
-                        for (let i = 0; i < subscriber_queue.length; i += 2) {
-                            subscriber_queue[i][0](subscriber_queue[i + 1]);
-                        }
-                        subscriber_queue.length = 0;
-                    }
-                }
-            }
-        }
-        function update(fn) {
-            set(fn(value));
-        }
-        function subscribe(run, invalidate = noop) {
-            const subscriber = [run, invalidate];
-            subscribers.push(subscriber);
-            if (subscribers.length === 1) {
-                stop = start(set) || noop;
-            }
-            run(value);
-            return () => {
-                const index = subscribers.indexOf(subscriber);
-                if (index !== -1) {
-                    subscribers.splice(index, 1);
-                }
-                if (subscribers.length === 0) {
-                    stop();
-                    stop = null;
-                }
-            };
-        }
-        return { set, update, subscribe };
-    }
-
-    let time = readable(new Date(), function start(set) {
-      let interval = setInterval(() => {
-        set(new Date());
-      }, 1000);
-
-      return function stop() {
-        clearInterval(interval);
-      };
-    });
-
     const hhsSched = writable({}, async (set) => {
       const res = await axios$1.get(
         'https://my-json-server.typicode.com/HPSSupport/hps-schedule-data/hhs'
@@ -1898,10 +1911,16 @@ var app = (function () {
       set(res.data);
     });
 
+    const hmsSched = writable({}, async (set) => {
+      const res = await axios$1.get('https://my-json-server.typicode.com/HPSSupport/hps-schedule-data/hms');
+
+      set(res.data);
+    });
+
     /* src\components\Period.svelte generated by Svelte v3.29.4 */
     const file = "src\\components\\Period.svelte";
 
-    // (42:2) {#if passing}
+    // (41:2) {#if passing}
     function create_if_block(ctx) {
     	let span;
 
@@ -1910,7 +1929,7 @@ var app = (function () {
     			span = element("span");
     			attr_dev(span, "class", "badge blue white-text");
     			attr_dev(span, "data-badge-caption", "passing");
-    			add_location(span, file, 42, 4, 1114);
+    			add_location(span, file, 41, 4, 1091);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
@@ -1924,7 +1943,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(42:2) {#if passing}",
+    		source: "(41:2) {#if passing}",
     		ctx
     	});
 
@@ -1936,20 +1955,20 @@ var app = (function () {
     	let t0;
     	let div0;
     	let span;
-    	let t1_value = /*info*/ ctx[1].id + "";
+    	let t1_value = /*info*/ ctx[0].id + "";
     	let t1;
     	let t2;
     	let div4;
     	let div1;
-    	let t3_value = get12HourStamp(/*info*/ ctx[1].start) + "";
+    	let t3_value = get12HourStamp(/*info*/ ctx[0].start) + "";
     	let t3;
     	let t4;
     	let div2;
     	let t6;
     	let div3;
-    	let t7_value = get12HourStamp(/*info*/ ctx[1].end) + "";
+    	let t7_value = get12HourStamp(/*info*/ ctx[0].end) + "";
     	let t7;
-    	let if_block = /*passing*/ ctx[0] && create_if_block(ctx);
+    	let if_block = /*passing*/ ctx[2] && create_if_block(ctx);
 
     	const block = {
     		c: function create() {
@@ -1970,21 +1989,21 @@ var app = (function () {
     			div3 = element("div");
     			t7 = text(t7_value);
     			attr_dev(span, "class", "card-title center");
-    			add_location(span, file, 45, 4, 1230);
+    			add_location(span, file, 44, 4, 1207);
     			attr_dev(div0, "class", "card-content p-0");
-    			add_location(div0, file, 44, 2, 1194);
+    			add_location(div0, file, 43, 2, 1171);
     			attr_dev(div1, "class", "col s5 center");
-    			add_location(div1, file, 48, 4, 1315);
+    			add_location(div1, file, 47, 4, 1292);
     			attr_dev(div2, "class", "col s2 center");
-    			add_location(div2, file, 49, 4, 1382);
+    			add_location(div2, file, 48, 4, 1359);
     			attr_dev(div3, "class", "col s5 center");
-    			add_location(div3, file, 50, 4, 1422);
+    			add_location(div3, file, 49, 4, 1399);
     			attr_dev(div4, "class", "row");
-    			add_location(div4, file, 47, 2, 1292);
+    			add_location(div4, file, 46, 2, 1269);
     			attr_dev(div5, "class", "card");
-    			toggle_class(div5, "blue", /*current*/ ctx[2] === true);
-    			toggle_class(div5, "lighten-4", /*current*/ ctx[2] === true);
-    			add_location(div5, file, 37, 0, 999);
+    			toggle_class(div5, "blue", /*current*/ ctx[1] === true);
+    			toggle_class(div5, "lighten-4", /*current*/ ctx[1] === true);
+    			add_location(div5, file, 36, 0, 976);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2007,7 +2026,7 @@ var app = (function () {
     			append_dev(div3, t7);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (/*passing*/ ctx[0]) {
+    			if (/*passing*/ ctx[2]) {
     				if (if_block) ; else {
     					if_block = create_if_block(ctx);
     					if_block.c();
@@ -2018,16 +2037,16 @@ var app = (function () {
     				if_block = null;
     			}
 
-    			if (dirty & /*info*/ 2 && t1_value !== (t1_value = /*info*/ ctx[1].id + "")) set_data_dev(t1, t1_value);
-    			if (dirty & /*info*/ 2 && t3_value !== (t3_value = get12HourStamp(/*info*/ ctx[1].start) + "")) set_data_dev(t3, t3_value);
-    			if (dirty & /*info*/ 2 && t7_value !== (t7_value = get12HourStamp(/*info*/ ctx[1].end) + "")) set_data_dev(t7, t7_value);
+    			if (dirty & /*info*/ 1 && t1_value !== (t1_value = /*info*/ ctx[0].id + "")) set_data_dev(t1, t1_value);
+    			if (dirty & /*info*/ 1 && t3_value !== (t3_value = get12HourStamp(/*info*/ ctx[0].start) + "")) set_data_dev(t3, t3_value);
+    			if (dirty & /*info*/ 1 && t7_value !== (t7_value = get12HourStamp(/*info*/ ctx[0].end) + "")) set_data_dev(t7, t7_value);
 
-    			if (dirty & /*current*/ 4) {
-    				toggle_class(div5, "blue", /*current*/ ctx[2] === true);
+    			if (dirty & /*current*/ 2) {
+    				toggle_class(div5, "blue", /*current*/ ctx[1] === true);
     			}
 
-    			if (dirty & /*current*/ 4) {
-    				toggle_class(div5, "lighten-4", /*current*/ ctx[2] === true);
+    			if (dirty & /*current*/ 2) {
+    				toggle_class(div5, "lighten-4", /*current*/ ctx[1] === true);
     			}
     		},
     		i: noop,
@@ -2081,57 +2100,56 @@ var app = (function () {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("Period", slots, []);
     	let { info } = $$props;
-    	let { passing } = $$props;
-    	const writable_props = ["info", "passing"];
+    	const writable_props = ["info"];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Period> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
-    		if ("info" in $$props) $$invalidate(1, info = $$props.info);
-    		if ("passing" in $$props) $$invalidate(0, passing = $$props.passing);
+    		if ("info" in $$props) $$invalidate(0, info = $$props.info);
     	};
 
     	$$self.$capture_state = () => ({
     		time,
     		info,
-    		passing,
     		nowIsBetween,
     		get12HourStamp,
     		current,
-    		$time
+    		$time,
+    		passing
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("info" in $$props) $$invalidate(1, info = $$props.info);
-    		if ("passing" in $$props) $$invalidate(0, passing = $$props.passing);
-    		if ("current" in $$props) $$invalidate(2, current = $$props.current);
+    		if ("info" in $$props) $$invalidate(0, info = $$props.info);
+    		if ("current" in $$props) $$invalidate(1, current = $$props.current);
+    		if ("passing" in $$props) $$invalidate(2, passing = $$props.passing);
     	};
 
     	let current;
+    	let passing;
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*info, $time*/ 10) {
-    			 $$invalidate(2, current = nowIsBetween(info.start, info.end, $time));
+    		if ($$self.$$.dirty & /*info, $time*/ 9) {
+    			 $$invalidate(1, current = nowIsBetween(info.start, info.end, $time));
     		}
 
-    		if ($$self.$$.dirty & /*info, $time*/ 10) {
-    			 $$invalidate(0, passing = nowIsBetween(info.end, info.nextStart, $time));
+    		if ($$self.$$.dirty & /*info, $time*/ 9) {
+    			 $$invalidate(2, passing = nowIsBetween(info.end, info.nextStart, $time));
     		}
     	};
 
-    	return [passing, info, current];
+    	return [info, current, passing];
     }
 
     class Period extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { info: 1, passing: 0 });
+    		init(this, options, instance, create_fragment, safe_not_equal, { info: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -2143,12 +2161,8 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*info*/ ctx[1] === undefined && !("info" in props)) {
+    		if (/*info*/ ctx[0] === undefined && !("info" in props)) {
     			console.warn("<Period> was created without expected prop 'info'");
-    		}
-
-    		if (/*passing*/ ctx[0] === undefined && !("passing" in props)) {
-    			console.warn("<Period> was created without expected prop 'passing'");
     		}
     	}
 
@@ -2157,14 +2171,6 @@ var app = (function () {
     	}
 
     	set info(value) {
-    		throw new Error("<Period>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get passing() {
-    		throw new Error("<Period>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set passing(value) {
     		throw new Error("<Period>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -2431,11 +2437,499 @@ var app = (function () {
     	}
     }
 
-    /* src\App.svelte generated by Svelte v3.29.4 */
-    const file$2 = "src\\App.svelte";
+    /* src\components\HMSPeriod.svelte generated by Svelte v3.29.4 */
+    const file$2 = "src\\components\\HMSPeriod.svelte";
 
-    // (34:6) {#if $hhsSched.length > 0}
+    // (49:8) {#if passing}
     function create_if_block$1(ctx) {
+    	let span;
+
+    	const block = {
+    		c: function create() {
+    			span = element("span");
+    			attr_dev(span, "class", "badge blue white-text");
+    			attr_dev(span, "data-badge-caption", "passing");
+    			add_location(span, file$2, 49, 10, 1278);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, span, anchor);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(span);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$1.name,
+    		type: "if",
+    		source: "(49:8) {#if passing}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$2(ctx) {
+    	let li;
+    	let div1;
+    	let div0;
+    	let t0_value = /*info*/ ctx[0].id + "";
+    	let t0;
+    	let span;
+    	let t1_value = get12HourStamp$1(/*info*/ ctx[0].start) + "";
+    	let t1;
+    	let t2;
+    	let t3_value = get12HourStamp$1(/*info*/ ctx[0].end) + "";
+    	let t3;
+    	let t4;
+    	let if_block = /*passing*/ ctx[2] && create_if_block$1(ctx);
+
+    	const block = {
+    		c: function create() {
+    			li = element("li");
+    			div1 = element("div");
+    			div0 = element("div");
+    			t0 = text(t0_value);
+    			span = element("span");
+    			t1 = text(t1_value);
+    			t2 = text("\r\n        -\r\n        ");
+    			t3 = text(t3_value);
+    			t4 = space();
+    			if (if_block) if_block.c();
+    			attr_dev(span, "class", "secondary-content");
+    			add_location(span, file$2, 45, 15, 1136);
+    			add_location(div0, file$2, 44, 4, 1114);
+    			add_location(div1, file$2, 43, 2, 1103);
+    			attr_dev(li, "class", "collection-item");
+    			toggle_class(li, "blue", /*current*/ ctx[1] === true);
+    			toggle_class(li, "lighten-4", /*current*/ ctx[1] === true);
+    			add_location(li, file$2, 39, 0, 997);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, li, anchor);
+    			append_dev(li, div1);
+    			append_dev(div1, div0);
+    			append_dev(div0, t0);
+    			append_dev(div0, span);
+    			append_dev(span, t1);
+    			append_dev(span, t2);
+    			append_dev(span, t3);
+    			append_dev(span, t4);
+    			if (if_block) if_block.m(span, null);
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*info*/ 1 && t0_value !== (t0_value = /*info*/ ctx[0].id + "")) set_data_dev(t0, t0_value);
+    			if (dirty & /*info*/ 1 && t1_value !== (t1_value = get12HourStamp$1(/*info*/ ctx[0].start) + "")) set_data_dev(t1, t1_value);
+    			if (dirty & /*info*/ 1 && t3_value !== (t3_value = get12HourStamp$1(/*info*/ ctx[0].end) + "")) set_data_dev(t3, t3_value);
+
+    			if (/*passing*/ ctx[2]) {
+    				if (if_block) ; else {
+    					if_block = create_if_block$1(ctx);
+    					if_block.c();
+    					if_block.m(span, null);
+    				}
+    			} else if (if_block) {
+    				if_block.d(1);
+    				if_block = null;
+    			}
+
+    			if (dirty & /*current*/ 2) {
+    				toggle_class(li, "blue", /*current*/ ctx[1] === true);
+    			}
+
+    			if (dirty & /*current*/ 2) {
+    				toggle_class(li, "lighten-4", /*current*/ ctx[1] === true);
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(li);
+    			if (if_block) if_block.d();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$2.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function nowIsBetween$1(startStr, endStr, now) {
+    	let start = startStr.split(":").map(i => parseInt(i));
+    	let startMins = start[0] * 60 + start[1];
+    	let end = endStr.split(":").map(i => parseInt(i));
+    	let endMins = end[0] * 60 + end[1];
+    	let nowMins = now.getHours() * 60 + now.getMinutes();
+    	return nowMins >= startMins && nowMins < endMins;
+    }
+
+    function get12HourStamp$1(timeStr) {
+    	let timeArr = timeStr.split(":");
+    	let hours = parseInt(timeArr[0]);
+    	let mins = timeArr[1];
+    	let morning = true;
+
+    	if (hours > 12) {
+    		hours = hours - 12;
+    		morning = false;
+    	} else if (hours === 12) {
+    		morning = false;
+    	}
+
+    	return `${hours}:${mins} ${morning ? "AM" : "PM"}`;
+    }
+
+    function instance$2($$self, $$props, $$invalidate) {
+    	let $time;
+    	validate_store(time, "time");
+    	component_subscribe($$self, time, $$value => $$invalidate(3, $time = $$value));
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots("HMSPeriod", slots, []);
+    	let { info } = $$props;
+    	const writable_props = ["info"];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<HMSPeriod> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ("info" in $$props) $$invalidate(0, info = $$props.info);
+    	};
+
+    	$$self.$capture_state = () => ({
+    		time,
+    		info,
+    		nowIsBetween: nowIsBetween$1,
+    		get12HourStamp: get12HourStamp$1,
+    		current,
+    		$time,
+    		passing
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ("info" in $$props) $$invalidate(0, info = $$props.info);
+    		if ("current" in $$props) $$invalidate(1, current = $$props.current);
+    		if ("passing" in $$props) $$invalidate(2, passing = $$props.passing);
+    	};
+
+    	let current;
+    	let passing;
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*info, $time*/ 9) {
+    			 $$invalidate(1, current = nowIsBetween$1(info.start, info.end, $time));
+    		}
+
+    		if ($$self.$$.dirty & /*info, $time*/ 9) {
+    			 $$invalidate(2, passing = nowIsBetween$1(info.end, info.nextStart, $time));
+    		}
+    	};
+
+    	return [info, current, passing];
+    }
+
+    class HMSPeriod extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$2, create_fragment$2, safe_not_equal, { info: 0 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "HMSPeriod",
+    			options,
+    			id: create_fragment$2.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*info*/ ctx[0] === undefined && !("info" in props)) {
+    			console.warn("<HMSPeriod> was created without expected prop 'info'");
+    		}
+    	}
+
+    	get info() {
+    		throw new Error("<HMSPeriod>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set info(value) {
+    		throw new Error("<HMSPeriod>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src\components\HMSSchedule.svelte generated by Svelte v3.29.4 */
+    const file$3 = "src\\components\\HMSSchedule.svelte";
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[2] = list[i];
+    	return child_ctx;
+    }
+
+    // (17:4) {#each sched as period}
+    function create_each_block$1(ctx) {
+    	let hmsperiod;
+    	let current;
+
+    	hmsperiod = new HMSPeriod({
+    			props: { info: /*period*/ ctx[2] },
+    			$$inline: true
+    		});
+
+    	const block = {
+    		c: function create() {
+    			create_component(hmsperiod.$$.fragment);
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(hmsperiod, target, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const hmsperiod_changes = {};
+    			if (dirty & /*sched*/ 2) hmsperiod_changes.info = /*period*/ ctx[2];
+    			hmsperiod.$set(hmsperiod_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(hmsperiod.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(hmsperiod.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(hmsperiod, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block$1.name,
+    		type: "each",
+    		source: "(17:4) {#each sched as period}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$3(ctx) {
+    	let div;
+    	let ul;
+    	let li;
+    	let h5;
+    	let t0;
+    	let t1;
+    	let current;
+    	let each_value = /*sched*/ ctx[1];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    	}
+
+    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
+    		each_blocks[i] = null;
+    	});
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			ul = element("ul");
+    			li = element("li");
+    			h5 = element("h5");
+    			t0 = text(/*title*/ ctx[0]);
+    			t1 = space();
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			add_location(h5, file$3, 14, 6, 281);
+    			attr_dev(li, "class", "collection-header");
+    			add_location(li, file$3, 13, 4, 243);
+    			attr_dev(ul, "class", "collection with-header");
+    			add_location(ul, file$3, 12, 2, 202);
+    			attr_dev(div, "class", "col s4");
+    			add_location(div, file$3, 11, 0, 178);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, ul);
+    			append_dev(ul, li);
+    			append_dev(li, h5);
+    			append_dev(h5, t0);
+    			append_dev(ul, t1);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(ul, null);
+    			}
+
+    			current = true;
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (!current || dirty & /*title*/ 1) set_data_dev(t0, /*title*/ ctx[0]);
+
+    			if (dirty & /*sched*/ 2) {
+    				each_value = /*sched*/ ctx[1];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(ul, null);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value.length; i < each_blocks.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			each_blocks = each_blocks.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			destroy_each(each_blocks, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$3.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$3($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots("HMSSchedule", slots, []);
+    	let { title } = $$props;
+    	let { sched } = $$props;
+    	const writable_props = ["title", "sched"];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<HMSSchedule> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ("title" in $$props) $$invalidate(0, title = $$props.title);
+    		if ("sched" in $$props) $$invalidate(1, sched = $$props.sched);
+    	};
+
+    	$$self.$capture_state = () => ({ each, HMSPeriod, title, sched });
+
+    	$$self.$inject_state = $$props => {
+    		if ("title" in $$props) $$invalidate(0, title = $$props.title);
+    		if ("sched" in $$props) $$invalidate(1, sched = $$props.sched);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [title, sched];
+    }
+
+    class HMSSchedule extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, { title: 0, sched: 1 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "HMSSchedule",
+    			options,
+    			id: create_fragment$3.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*title*/ ctx[0] === undefined && !("title" in props)) {
+    			console.warn("<HMSSchedule> was created without expected prop 'title'");
+    		}
+
+    		if (/*sched*/ ctx[1] === undefined && !("sched" in props)) {
+    			console.warn("<HMSSchedule> was created without expected prop 'sched'");
+    		}
+    	}
+
+    	get title() {
+    		throw new Error("<HMSSchedule>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set title(value) {
+    		throw new Error("<HMSSchedule>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get sched() {
+    		throw new Error("<HMSSchedule>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set sched(value) {
+    		throw new Error("<HMSSchedule>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src\App.svelte generated by Svelte v3.29.4 */
+
+    const { console: console_1 } = globals;
+    const file$4 = "src\\App.svelte";
+
+    // (39:6) {#if $hhsSched.length > 0}
+    function create_if_block_1(ctx) {
     	let div;
     	let schedule0;
     	let t;
@@ -2444,16 +2938,16 @@ var app = (function () {
 
     	schedule0 = new Schedule({
     			props: {
-    				sched: /*$hhsSched*/ ctx[1][0].periods,
-    				title: /*$hhsSched*/ ctx[1][0].title
+    				sched: /*$hhsSched*/ ctx[2][0].periods,
+    				title: /*$hhsSched*/ ctx[2][0].title
     			},
     			$$inline: true
     		});
 
     	schedule1 = new Schedule({
     			props: {
-    				sched: /*$hhsSched*/ ctx[1][1].periods,
-    				title: /*$hhsSched*/ ctx[1][1].title
+    				sched: /*$hhsSched*/ ctx[2][1].periods,
+    				title: /*$hhsSched*/ ctx[2][1].title
     			},
     			$$inline: true
     		});
@@ -2465,7 +2959,7 @@ var app = (function () {
     			t = space();
     			create_component(schedule1.$$.fragment);
     			attr_dev(div, "class", "col s12");
-    			add_location(div, file$2, 34, 8, 778);
+    			add_location(div, file$4, 39, 8, 940);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -2476,12 +2970,12 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const schedule0_changes = {};
-    			if (dirty & /*$hhsSched*/ 2) schedule0_changes.sched = /*$hhsSched*/ ctx[1][0].periods;
-    			if (dirty & /*$hhsSched*/ 2) schedule0_changes.title = /*$hhsSched*/ ctx[1][0].title;
+    			if (dirty & /*$hhsSched*/ 4) schedule0_changes.sched = /*$hhsSched*/ ctx[2][0].periods;
+    			if (dirty & /*$hhsSched*/ 4) schedule0_changes.title = /*$hhsSched*/ ctx[2][0].title;
     			schedule0.$set(schedule0_changes);
     			const schedule1_changes = {};
-    			if (dirty & /*$hhsSched*/ 2) schedule1_changes.sched = /*$hhsSched*/ ctx[1][1].periods;
-    			if (dirty & /*$hhsSched*/ 2) schedule1_changes.title = /*$hhsSched*/ ctx[1][1].title;
+    			if (dirty & /*$hhsSched*/ 4) schedule1_changes.sched = /*$hhsSched*/ ctx[2][1].periods;
+    			if (dirty & /*$hhsSched*/ 4) schedule1_changes.title = /*$hhsSched*/ ctx[2][1].title;
     			schedule1.$set(schedule1_changes);
     		},
     		i: function intro(local) {
@@ -2504,16 +2998,109 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block$1.name,
+    		id: create_if_block_1.name,
     		type: "if",
-    		source: "(34:6) {#if $hhsSched.length > 0}",
+    		source: "(39:6) {#if $hhsSched.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    function create_fragment$2(ctx) {
+    // (47:6) {#if $hmsSched.length > 0}
+    function create_if_block$2(ctx) {
+    	let hmsschedule0;
+    	let t0;
+    	let hmsschedule1;
+    	let t1;
+    	let hmsschedule2;
+    	let current;
+
+    	hmsschedule0 = new HMSSchedule({
+    			props: {
+    				title: "6th Grade",
+    				sched: /*$hmsSched*/ ctx[0][0].periods
+    			},
+    			$$inline: true
+    		});
+
+    	hmsschedule1 = new HMSSchedule({
+    			props: {
+    				title: "7th Grade",
+    				sched: /*$hmsSched*/ ctx[0][1].periods
+    			},
+    			$$inline: true
+    		});
+
+    	hmsschedule2 = new HMSSchedule({
+    			props: {
+    				title: "8th Grade",
+    				sched: /*$hmsSched*/ ctx[0][2].periods
+    			},
+    			$$inline: true
+    		});
+
+    	const block = {
+    		c: function create() {
+    			create_component(hmsschedule0.$$.fragment);
+    			t0 = space();
+    			create_component(hmsschedule1.$$.fragment);
+    			t1 = space();
+    			create_component(hmsschedule2.$$.fragment);
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(hmsschedule0, target, anchor);
+    			insert_dev(target, t0, anchor);
+    			mount_component(hmsschedule1, target, anchor);
+    			insert_dev(target, t1, anchor);
+    			mount_component(hmsschedule2, target, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const hmsschedule0_changes = {};
+    			if (dirty & /*$hmsSched*/ 1) hmsschedule0_changes.sched = /*$hmsSched*/ ctx[0][0].periods;
+    			hmsschedule0.$set(hmsschedule0_changes);
+    			const hmsschedule1_changes = {};
+    			if (dirty & /*$hmsSched*/ 1) hmsschedule1_changes.sched = /*$hmsSched*/ ctx[0][1].periods;
+    			hmsschedule1.$set(hmsschedule1_changes);
+    			const hmsschedule2_changes = {};
+    			if (dirty & /*$hmsSched*/ 1) hmsschedule2_changes.sched = /*$hmsSched*/ ctx[0][2].periods;
+    			hmsschedule2.$set(hmsschedule2_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(hmsschedule0.$$.fragment, local);
+    			transition_in(hmsschedule1.$$.fragment, local);
+    			transition_in(hmsschedule2.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(hmsschedule0.$$.fragment, local);
+    			transition_out(hmsschedule1.$$.fragment, local);
+    			transition_out(hmsschedule2.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(hmsschedule0, detaching);
+    			if (detaching) detach_dev(t0);
+    			destroy_component(hmsschedule1, detaching);
+    			if (detaching) detach_dev(t1);
+    			destroy_component(hmsschedule2, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$2.name,
+    		type: "if",
+    		source: "(47:6) {#if $hmsSched.length > 0}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$4(ctx) {
     	let main;
     	let nav;
     	let div0;
@@ -2521,13 +3108,16 @@ var app = (function () {
     	let t1;
     	let div1;
     	let span;
-    	let t2_value = /*formatter*/ ctx[2].format(/*$time*/ ctx[0]) + "";
+    	let t2_value = /*formatter*/ ctx[3].format(/*$time*/ ctx[1]) + "";
     	let t2;
     	let t3;
-    	let div3;
+    	let div4;
     	let div2;
+    	let t4;
+    	let div3;
     	let current;
-    	let if_block = /*$hhsSched*/ ctx[1].length > 0 && create_if_block$1(ctx);
+    	let if_block0 = /*$hhsSched*/ ctx[2].length > 0 && create_if_block_1(ctx);
+    	let if_block1 = /*$hmsSched*/ ctx[0].length > 0 && create_if_block$2(ctx);
 
     	const block = {
     		c: function create() {
@@ -2541,25 +3131,30 @@ var app = (function () {
     			span = element("span");
     			t2 = text(t2_value);
     			t3 = space();
-    			div3 = element("div");
+    			div4 = element("div");
     			div2 = element("div");
-    			if (if_block) if_block.c();
+    			if (if_block0) if_block0.c();
+    			t4 = space();
+    			div3 = element("div");
+    			if (if_block1) if_block1.c();
     			attr_dev(a, "href", "#!");
     			attr_dev(a, "class", "brand-logo center");
-    			add_location(a, file$2, 24, 6, 500);
+    			add_location(a, file$4, 29, 6, 649);
     			attr_dev(div0, "class", "nav-wrapper");
-    			add_location(div0, file$2, 23, 4, 468);
+    			add_location(div0, file$4, 28, 4, 616);
     			attr_dev(span, "class", "nav-title");
-    			add_location(span, file$2, 27, 6, 620);
-    			attr_dev(div1, "class", "nav-content center");
-    			add_location(div1, file$2, 26, 4, 581);
+    			add_location(span, file$4, 32, 6, 775);
+    			attr_dev(div1, "class", "nav-content center lh svelte-1vx8pb5");
+    			add_location(div1, file$4, 31, 4, 732);
     			attr_dev(nav, "class", "nav-extended blue darken-4");
-    			add_location(nav, file$2, 22, 2, 423);
+    			add_location(nav, file$4, 27, 2, 570);
     			attr_dev(div2, "class", "row");
-    			add_location(div2, file$2, 32, 4, 719);
-    			attr_dev(div3, "class", "");
-    			add_location(div3, file$2, 31, 2, 700);
-    			add_location(main, file$2, 21, 0, 414);
+    			add_location(div2, file$4, 37, 4, 879);
+    			attr_dev(div3, "class", "row");
+    			add_location(div3, file$4, 45, 4, 1168);
+    			attr_dev(div4, "class", "");
+    			add_location(div4, file$4, 36, 2, 859);
+    			add_location(main, file$4, 26, 0, 560);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2574,32 +3169,58 @@ var app = (function () {
     			append_dev(div1, span);
     			append_dev(span, t2);
     			append_dev(main, t3);
-    			append_dev(main, div3);
-    			append_dev(div3, div2);
-    			if (if_block) if_block.m(div2, null);
+    			append_dev(main, div4);
+    			append_dev(div4, div2);
+    			if (if_block0) if_block0.m(div2, null);
+    			append_dev(div4, t4);
+    			append_dev(div4, div3);
+    			if (if_block1) if_block1.m(div3, null);
     			current = true;
     		},
     		p: function update(ctx, [dirty]) {
-    			if ((!current || dirty & /*$time*/ 1) && t2_value !== (t2_value = /*formatter*/ ctx[2].format(/*$time*/ ctx[0]) + "")) set_data_dev(t2, t2_value);
+    			if ((!current || dirty & /*$time*/ 2) && t2_value !== (t2_value = /*formatter*/ ctx[3].format(/*$time*/ ctx[1]) + "")) set_data_dev(t2, t2_value);
 
-    			if (/*$hhsSched*/ ctx[1].length > 0) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
+    			if (/*$hhsSched*/ ctx[2].length > 0) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
 
-    					if (dirty & /*$hhsSched*/ 2) {
-    						transition_in(if_block, 1);
+    					if (dirty & /*$hhsSched*/ 4) {
+    						transition_in(if_block0, 1);
     					}
     				} else {
-    					if_block = create_if_block$1(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(div2, null);
+    					if_block0 = create_if_block_1(ctx);
+    					if_block0.c();
+    					transition_in(if_block0, 1);
+    					if_block0.m(div2, null);
     				}
-    			} else if (if_block) {
+    			} else if (if_block0) {
     				group_outros();
 
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
+    				transition_out(if_block0, 1, 1, () => {
+    					if_block0 = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (/*$hmsSched*/ ctx[0].length > 0) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+
+    					if (dirty & /*$hmsSched*/ 1) {
+    						transition_in(if_block1, 1);
+    					}
+    				} else {
+    					if_block1 = create_if_block$2(ctx);
+    					if_block1.c();
+    					transition_in(if_block1, 1);
+    					if_block1.m(div3, null);
+    				}
+    			} else if (if_block1) {
+    				group_outros();
+
+    				transition_out(if_block1, 1, 1, () => {
+    					if_block1 = null;
     				});
 
     				check_outros();
@@ -2607,22 +3228,25 @@ var app = (function () {
     		},
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(if_block);
+    			transition_in(if_block0);
+    			transition_in(if_block1);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(if_block);
+    			transition_out(if_block0);
+    			transition_out(if_block1);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(main);
-    			if (if_block) if_block.d();
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$2.name,
+    		id: create_fragment$4.name,
     		type: "component",
     		source: "",
     		ctx
@@ -2631,13 +3255,16 @@ var app = (function () {
     	return block;
     }
 
-    function instance$2($$self, $$props, $$invalidate) {
+    function instance$4($$self, $$props, $$invalidate) {
+    	let $hmsSched;
     	let $time;
     	let $hhsSched;
+    	validate_store(hmsSched, "hmsSched");
+    	component_subscribe($$self, hmsSched, $$value => $$invalidate(0, $hmsSched = $$value));
     	validate_store(time, "time");
-    	component_subscribe($$self, time, $$value => $$invalidate(0, $time = $$value));
+    	component_subscribe($$self, time, $$value => $$invalidate(1, $time = $$value));
     	validate_store(hhsSched, "hhsSched");
-    	component_subscribe($$self, hhsSched, $$value => $$invalidate(1, $hhsSched = $$value));
+    	component_subscribe($$self, hhsSched, $$value => $$invalidate(2, $hhsSched = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("App", slots, []);
 
@@ -2656,33 +3283,41 @@ var app = (function () {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<App> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$capture_state = () => ({
-    		axios: axios$1,
     		time,
     		hhsSched,
+    		hmsSched,
     		Schedule,
+    		HmsSchedule: HMSSchedule,
     		formatter,
     		isABDay,
+    		$hmsSched,
     		$time,
     		$hhsSched
     	});
 
-    	return [$time, $hhsSched, formatter];
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$hmsSched*/ 1) {
+    			 console.log($hmsSched);
+    		}
+    	};
+
+    	return [$hmsSched, $time, $hhsSched, formatter];
     }
 
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$2, create_fragment$2, safe_not_equal, {});
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "App",
     			options,
-    			id: create_fragment$2.name
+    			id: create_fragment$4.name
     		});
     	}
     }
