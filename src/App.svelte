@@ -11,8 +11,6 @@
     second: '2-digit',
   });
 
-  $: console.log($hmsSched);
-
   const isABDay = () => {
     return;
   };
@@ -20,13 +18,17 @@
 
 <style>
   .lh {
-    line-height: 0.8rem !important;
+    line-height: 0.2rem !important;
+  }
+
+  .mh36 {
+    min-height: 40px !important;
   }
 </style>
 
 <main>
   <nav class="nav-extended blue darken-4">
-    <div class="nav-wrapper">
+    <div class="nav-wrapper mh36">
       <a href="#!" class="brand-logo center">Hopkins Public Schools</a>
     </div>
     <div class="nav-content center lh">
