@@ -34,7 +34,7 @@
   </nav>
 
   <div class="">
-    <div class="row mb-0">
+    <div class="row">
       {#if $hhsSched.length > 0}
         <div class="col s10">
           <Schedule sched={$hhsSched[0].periods} title={$hhsSched[0].title} />
