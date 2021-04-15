@@ -36,7 +36,7 @@
   <div class="">
     <div class="row mb-0">
       {#if $hhsSched.length > 0}
-        <div class="col s10">
+        <div class="col s12">
           <Schedule sched={$hhsSched[0].periods} title={$hhsSched[0].title} />
           <Schedule sched={$hhsSched[1].periods} title={$hhsSched[1].title} />
           <Schedule sched={$hhsSched[2].periods} title={$hhsSched[2].title} />
