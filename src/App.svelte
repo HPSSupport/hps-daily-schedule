@@ -39,6 +39,7 @@
         <div class="col s12">
           <Schedule sched={$hhsSched[0].periods} title={$hhsSched[0].title} />
           <Schedule sched={$hhsSched[1].periods} title={$hhsSched[1].title} />
+          <Schedule sched={$hhsSched[1].periods} title={$hhsSched[2].title} />
         </div>
       {/if}
     </div>
