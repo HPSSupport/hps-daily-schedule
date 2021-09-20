@@ -39,7 +39,6 @@
         <div class="col s12">
           <Schedule sched={$hhsSched[0].periods} title={$hhsSched[0].title} />
           <Schedule sched={$hhsSched[1].periods} title={$hhsSched[1].title} />
-          <Schedule sched={$hhsSched[2].periods} title={$hhsSched[2].title} />
         </div>
       {/if}
     </div>
@@ -47,7 +46,6 @@
       {#if $hmsSched.length > 0}
         <HmsSchedule title="6th Grade" sched={$hmsSched[0].periods} />
         <HmsSchedule title="7th Grade" sched={$hmsSched[1].periods} />
-        <HmsSchedule title="8th Grade" sched={$hmsSched[2].periods} />
       {/if}
     </div>
   </div>
