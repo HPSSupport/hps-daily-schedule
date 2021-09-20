@@ -37,7 +37,7 @@
 <style>
 </style>
 
-<li>
+<li
   class="collection-item"
   class:blue={current === true}
   class:lighten-4={current === true}>
