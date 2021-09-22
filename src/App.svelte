@@ -46,6 +46,7 @@
       {#if $hmsSched.length > 0}
         <HmsSchedule title="6th Grade" sched={$hmsSched[0].periods} />
         <HmsSchedule title="7th Grade" sched={$hmsSched[1].periods} />
+        <HmsSchedule title="8th Grade" sched={$hmsSched[2].periods} />
       {/if}
     </div>
   </div>
